@@ -2,21 +2,21 @@
 
 ifcrab_Type = 'GEN'
 
-ifcrab_outputDirectory = '/gpfs/projects/cms/parbol/sampleGEN/'
+ifcrab_outputDirectory = '/gpfs/users/parbol/ifcrab/output/'
 
-ifcrab_workDirectory = '/gpfs/users/parbol/CMSSW_10_2_4/src/'
+ifcrab_workDirectory = '/gpfs/users/parbol/ifcrab/'
 
-ifcrab_logLocation = '/gpfs/users/parbol/CMSSW_10_2_4/src/logs/'
+ifcrab_logLocation = '/gpfs/users/parbol/ifcrab/logs/'
 
-ifcrab_cmsswrelease = '/gpfs/users/parbol/CMSSW_10_2_4/'
+ifcrab_cmsswrelease = '/gpfs/users/parbol/CMSSW_12_4_6/'
 
-ifcrab_template = '/gpfs/users/parbol/CMSSW_10_2_4/src/template/gen.py'
+ifcrab_template = '/gpfs/users/parbol/CMSSW_12_4_6/src/templates/step1.py'
 
 ifcrab_inputDirectory = ''
 
 ifcrab_queue = 'cms_high'
 
-ifcrab_eventsPerJob = 100
+ifcrab_eventsPerJob = 51
 
-ifcrab_numberOfJobs = 100
+ifcrab_numberOfJobs = 2
 

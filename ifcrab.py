@@ -136,7 +136,7 @@ def prepareJob(job):
 if __name__ == '__main__':
 
     parser = optparse.OptionParser(usage='usage: %prog [options] path', version='%prog 1.0')
-    parser.add_option('-c', '--conf'     , action='conf'    , type='string', dest='configuration',   default='',         help='Configuration file.')
+    parser.add_option('-c', '--conf'     , action='store'   , type='string', dest='configuration',   default='',         help='Configuration file.')
     parser.add_option('-n', '--number'   , action='store'   , type='string', dest='eventsPerJob',    default='',         help='Number of events per job.')
     parser.add_option('-N', '--njobs'    , action='store'   , type='string', dest='numberOfJobs',    default='',         help='Number of jobs.')
     parser.add_option('-o', '--output'   , action='store'   , type='string', dest='outputDirectory', default='',         help='Output directory.')
@@ -172,7 +172,7 @@ if __name__ == '__main__':
             except:
                 message('error', 'Error parsing configuration file ' + l)
                 sys.exit()
-        if not 'ifcrab_OutputDirectory' in locals():
+        if not 'ifcrab_outputDirectory' in locals():
                 message('error', 'Output directory not present in configuration file.')
                 sys.exit()
         if not 'ifcrab_Type' in locals():
@@ -219,42 +219,42 @@ if __name__ == '__main__':
     else:
         message('log', 'Taking configuration from command line')
 
-    if opts.Type != 'GEN' and opts.Type != 'SIM' and opts.Type != 'DIGIPremix' and opts.Type != 'HLT' and opts.Type != 'RECO' and opts.Type != 'MINIAOD' and opts.Type != 'NTUPLE':
+    if Type != 'GEN' and Type != 'SIM' and Type != 'DIGIPremix' and Type != 'HLT' and Type != 'RECO' and Type != 'MINIAOD' and Type != 'NTUPLE':
         message('error', 'Unknown kind of job')
         sys.exit()
-    if not os.path.exists(opts.outputDirectory):
+    if not os.path.exists(outputDirectory):
         message('log', 'Output directory does not exist, creating it...')
         os.mkdir(opts.outputDirectory)
     
-    if not os.path.exists(opts.workDirectory):
+    if not os.path.exists(workDirectory):
         message('error', 'Work directory does not exist')
         sys.exit()
 
-    if not os.path.exists(opts.logLocation):
+    if not os.path.exists(logLocation):
         message('log', 'Log directory does not exist, creating it...')
-        os.mkdir(opts.logLocation)
+        os.mkdir(logLocation)
     
-    if not os.path.exists(opts.cmsswrelease):
+    if not os.path.exists(cmsswrelease):
         message('error', 'CMSSW release does not exist')
         sys.exit()
     
-    if not os.path.exists(opts.template):
+    if not os.path.exists(template):
         message('error', 'The template file does not exist')
         sys.exit()
     
-    if opts.Type != 'GEN' and not os.path.exists(opts.inputDirectory):
+    if Type != 'GEN' and not os.path.exists(inputDirectory):
         message('error', 'The input directory file does not exist')
         sys.exit()
 
-    if opts.queue != 'cms_main' and opts.queue != 'cms_high':
+    if queue != 'cms_main' and queue != 'cms_high':
         message('error', 'The queue does not exist')
         sys.exit()
         
-    if opts.Type == 'GEN' and (int(opts.eventsPerJob) <= 50 or int(opts.eventsPerJob) > 3000):
+    if Type == 'GEN' and (int(eventsPerJob) <= 50 or int(eventsPerJob) > 3000):
         message('error', 'The number of events per job has to be in the range [50, 3000].')
         sys.exit()
     
-    if opts.Type == 'GEN' and (int(opts.numberOfJobs) <= 0 or int(opts.numberOfJobs) > 2000):
+    if Type == 'GEN' and (int(numberOfJobs) <= 0 or int(numberOfJobs) > 2000):
         message('error', 'The number of jobs has to be in the range [1, 2000].')
         sys.exit()
 
@@ -298,7 +298,7 @@ if __name__ == '__main__':
         job = {}
         job['id'] = str(j)
         job['type'] = opts.Type
-        if opts.Type != 'GEN':
+        if Type != 'GEN':
             job['inputFile'] = listOfInputFiles[j]
             job['nEvents'] = '-1'
         else:
