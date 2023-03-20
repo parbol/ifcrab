@@ -20,3 +20,5 @@ ifcrab_eventsPerJob = 51
 
 ifcrab_numberOfJobs = 2
 
+ifcrab_site = 'ifca'
+

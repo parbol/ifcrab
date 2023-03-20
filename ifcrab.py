@@ -24,6 +24,21 @@ cmsRun JOBNAME
 ##############################################################################
 ##############################################################################
 
+
+##############################################################################
+##############################################################################
+Condor = """#!/bin/bash
+universe                = vanilla
+executable              = $(filename)
+output                  = LOGDIR/$(ClusterId).$(ProcId).out
+error                   = LOGDIR/$(ClusterId).$(ProcId).err
+log                     = LOGDIR/$(ClusterId).log
++JobFlavour = "QUEUE" 
+queue filename matching (WORKDIR/conf_*sh)
+"""
+##############################################################################
+##############################################################################
+
 ##############################################################################
 ##############################################################################
 randomTemplate = """
@@ -126,8 +141,23 @@ def prepareJob(job):
     #message('log', 'sbatch -o ' + job['log'] + ' -e ' + job['error'] + ' --quos=' + job['queue'] + ' --partition=cloudcms ' + job['confsh'])
     #subprocess.run(['sbatch', '-o', job['log'], '-e', job['error'], '--qos='+job['queue'], '--account=cms', '--partition=cloudcms', job['confsh']])
     #subprocess.run(['sbatch', '-o', job['log'], '-e', job['error'], '--qos='+job['queue'], '--account=cms', '--partition=cloudcms', job['confsh']])
-    pr = subprocess.Popen(['sbatch', '-o', job['log'], '-e', job['error'], '--qos='+job['queue'], '--account=cms', '--partition=cloudcms', job['confsh']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = pr.communicate()
+    if job['site'] == 'ifca':
+        pr = subprocess.Popen(['sbatch', '-o', job['log'], '-e', job['error'], '--qos='+job['queue'], '--account=cms', '--partition=cloudcms', job['confsh']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = pr.communicate()
+
+##############################################################################
+##############################################################################
+
+##############################################################################
+##############################################################################
+def makeCondorFile(workDirectory, logLocation, queue):
+
+    f = open(workDirectory + '/condor.sub', 'w')
+    Condor = Condor.replace('LOGDIR', logLocation)
+    Condor = Condor.replace('WORKDIR', workDirectory)
+    Condor = Condor.replace('QUEUE', queue)
+    f.Write(Condor)
+    f.close()
 ##############################################################################
 ##############################################################################
 
@@ -147,6 +177,7 @@ if __name__ == '__main__':
     parser.add_option('-q', '--queue'    , action='store'   , type='string', dest='queue',           default='',         help='Queue name.')
     parser.add_option('-t', '--template' , action='store'   , type='string', dest='template',        default='',         help='Name of the template')
     parser.add_option('-T', '--type'     , action='store'   , type='string', dest='Type',            default='',         help='Type of job')
+    parser.add_option('-s', '--site'     , action='store'   , type='string', dest='site',            default='ifca',     help='Site = ifca or cern')
     (opts, args) = parser.parse_args()
 
     logo()
@@ -163,6 +194,7 @@ if __name__ == '__main__':
     queue = opts.queue
     eventsPerJob = opts.eventsPerJob
     numberOfJobs = opts.numberOfJobs
+    site = opts.site
 
     if opts.configuration != '' and os.path.exists(opts.configuration):
         message('log', 'The configuration will be read from ' + opts.configuration)
@@ -202,6 +234,10 @@ if __name__ == '__main__':
         if not 'ifcrab_numberOfJobs' in locals():
                 message('error', 'Number of jobs not present in configuration file.')
                 sys.exit()
+        if not 'ifcrab_site' in locals():
+                message('log', 'Running by default on IFCA site.')
+        else:
+                site = ifcrab_site
         Type = ifcrab_Type
         outputDirectory = ifcrab_outputDirectory
         workDirectory = ifcrab_workDirectory
@@ -246,8 +282,12 @@ if __name__ == '__main__':
         message('error', 'The input directory file does not exist')
         sys.exit()
 
-    if queue != 'cms_main' and queue != 'cms_high':
+    if queue != 'cms_main' and queue != 'cms_high' and queue != 'microcentury' and queue != 'workday' and queue != 'tomorrow' and queue != 'longlunch':
         message('error', 'The queue does not exist')
+        sys.exit()
+        
+    if site != 'ifca' and site != 'cern':
+        message('error', 'The site does not exist.')
         sys.exit()
         
     if Type == 'GEN' and (int(eventsPerJob) <= 50 or int(eventsPerJob) > 3000):
@@ -293,11 +333,13 @@ if __name__ == '__main__':
         message('warning', 'All the jobs are finished, please move forward')
         sys.exit()
     
+         
     #Running on number of jobs
     for j in range(0, nJobs):
         job = {}
         job['id'] = str(j)
-        job['type'] = opts.Type
+        job['type'] = Type
+        job['site'] = site
         if Type != 'GEN':
             job['inputFile'] = listOfInputFiles[j]
             job['nEvents'] = '-1'
@@ -315,8 +357,10 @@ if __name__ == '__main__':
         job['log'] = logLocation + '/log_' + Type + '_' + str(j) + '.log'
         if not os.path.exists(job['outputFile']):
             prepareJob(job)
-
    
  
-
+    if site == 'cern':
+        makeCondorFile(workDirectory, logLocation, queue)
+        pr = subprocess.Popen(['condor_sub', 'condor.sub', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = pr.communicate()
 
