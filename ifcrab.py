@@ -27,14 +27,14 @@ cmsRun JOBNAME
 
 ##############################################################################
 ##############################################################################
-Condor = """#!/bin/bash
+templateCondor = """#!/bin/bash
 universe                = vanilla
 executable              = $(filename)
-output                  = LOGDIR/$(ClusterId).$(ProcId).out
-error                   = LOGDIR/$(ClusterId).$(ProcId).err
-log                     = LOGDIR/$(ClusterId).log
+output                  = LOGDIR$(ClusterId).$(ProcId).out
+error                   = LOGDIR$(ClusterId).$(ProcId).err
+log                     = LOGDIR$(ClusterId).log
 +JobFlavour = "QUEUE" 
-queue filename matching (WORKDIR/conf_*sh)
+queue filename matching (WORKDIRconf_*.sh)
 """
 ##############################################################################
 ##############################################################################
@@ -153,10 +153,11 @@ def prepareJob(job):
 def makeCondorFile(workDirectory, logLocation, queue):
 
     f = open(workDirectory + '/condor.sub', 'w')
+    Condor = templateCondor
     Condor = Condor.replace('LOGDIR', logLocation)
     Condor = Condor.replace('WORKDIR', workDirectory)
     Condor = Condor.replace('QUEUE', queue)
-    f.Write(Condor)
+    f.write(Condor)
     f.close()
 ##############################################################################
 ##############################################################################
@@ -263,8 +264,8 @@ if __name__ == '__main__':
         os.mkdir(opts.outputDirectory)
     
     if not os.path.exists(workDirectory):
-        message('error', 'Work directory does not exist')
-        sys.exit()
+        message('log', 'Work directory does not exist, creating it...')
+        os.mkdir(workDirectory)
 
     if not os.path.exists(logLocation):
         message('log', 'Log directory does not exist, creating it...')
@@ -361,6 +362,4 @@ if __name__ == '__main__':
  
     if site == 'cern':
         makeCondorFile(workDirectory, logLocation, queue)
-        pr = subprocess.Popen(['condor_sub', 'condor.sub', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = pr.communicate()
-
+        os.system('condor_submit {0}condor.sub'.format(workDirectory))
